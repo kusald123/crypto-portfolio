@@ -12,14 +12,16 @@ pf.create().then(async (portfolio) => {
     const promises = [];
     for (const token of tokens) {
         promises.push(cryptoConn.get(token, CURRENCY).then((data) => {
-            const valueUSD = data[CURRENCY];
-            portfolio[token] = (portfolio[token] * valueUSD).toFixed(2);
+            const rate = data[CURRENCY];
+            const amount = portfolio[token];
+            const value = parseFloat((portfolio[token] * rate).toFixed(2));
+            portfolio[token] = { amount, value, rate }
         }));
     }
     return new Promise((resolve) => {
         return Promise.all(promises).then(() => resolve(portfolio));
     })
-    
+
 }).then((updatePfUsd) => {
     console.log(`Token values in ${CURRENCY} -> `, updatePfUsd);
 }).catch((err) => console.error(err));
