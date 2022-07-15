@@ -9,16 +9,19 @@ const pf = new portfolio(filePath);
 pf.create().then(async (portfolio) => {
     const tokens = Object.keys(portfolio);
     const cryptoConn = new cryptoConnection();
+    const promises = [];
     for (const token of tokens) {
-        try {
-            const data = await cryptoConn.get(token, CURRENCY);
+        promises.push(cryptoConn.get(token, CURRENCY).then((data) => {
             const valueUSD = data[CURRENCY];
-            portfolio[token] = portfolio[token] * valueUSD;
-        } catch (err) {
-            console.error(err);
-        }
+            portfolio[token] = (portfolio[token] * valueUSD).toFixed(2);
+        }));
     }
-    console.log(`Token values in ${CURRENCY} -> `, portfolio);
+    return new Promise((resolve) => {
+        return Promise.all(promises).then(() => resolve(portfolio));
+    })
+    
+}).then((updatePfUsd) => {
+    console.log(`Token values in ${CURRENCY} -> `, updatePfUsd);
 }).catch((err) => console.error(err));
 
 
